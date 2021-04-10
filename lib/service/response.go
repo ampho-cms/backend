@@ -1,3 +1,7 @@
+// Author:  Alexander Shepetko
+// Email:   a@shepetko.com
+// License: MIT
+
 package service
 
 import (
@@ -5,9 +9,9 @@ import (
 	"net/http"
 )
 
-// Response is a HTTP response
+// Response is an HTTP response
 type Response struct {
-	writer  http.ResponseWriter
+	writer http.ResponseWriter
 }
 
 // Writer returns an underlying writer

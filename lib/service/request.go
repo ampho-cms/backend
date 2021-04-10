@@ -1,9 +1,16 @@
+// Author:  Alexander Shepetko
+// Email:   a@shepetko.com
+// License: MIT
+
 package service
 
 import (
 	"github.com/gorilla/mux"
 	"net/http"
 )
+
+// RequestHandler is the service HTTP request function
+type RequestHandler func(*Service, *Request, *Response)
 
 // Request is the service HTTP request.
 type Request struct {
