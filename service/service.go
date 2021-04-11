@@ -6,6 +6,7 @@
 package service
 
 import (
+	"ampho/routing"
 	"context"
 	"fmt"
 	"math/rand"
@@ -14,7 +15,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 
@@ -28,7 +28,7 @@ type Service struct {
 	mode   string
 	cfg    config.Config
 	log    logger.Logger
-	router *mux.Router
+	router routing.Router
 	server *http.Server
 }
 
@@ -53,36 +53,13 @@ func (s *Service) Log() logger.Logger {
 }
 
 // Router returns service router.
-func (s *Service) Router() *mux.Router {
+func (s *Service) Router() routing.Router {
 	return s.router
 }
 
 // Server returns service server.
 func (s *Service) Server() *http.Server {
 	return s.server
-}
-
-// AddHandler registers a request handler.
-func (s *Service) AddHandler(path string, handler RequestHandler) *mux.Route {
-	route := s.router.HandleFunc(path, func(resp http.ResponseWriter, req *http.Request) {
-		handler(s, &Request{request: req}, &Response{writer: resp})
-	})
-
-	s.log.DebugF("route registered: %s", path)
-
-	return route
-}
-
-// AddMiddleware registers a middleware.
-func (s *Service) AddMiddleware(handler RequestHandler) {
-	s.router.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-			handler(s, &Request{request: req}, &Response{writer: resp})
-			next.ServeHTTP(resp, req)
-		})
-	})
-
-	s.log.DebugF("middleware registered: %v", handler)
 }
 
 // Start starts the service.
@@ -117,77 +94,97 @@ func (s *Service) Start() {
 	os.Exit(0)
 }
 
-// NewDefault creates a new service instance using default configuration.
-func NewDefault(name string) *Service {
-	var err error
-
-	rand.Seed(time.Now().UnixNano())
-
-	s := Service{
-		name: name,
-		mode: ModeDevelopment,
-	}
-
-	// Configuration engine
-	vp := viper.New()
-	vp.SetConfigName("." + s.name + ".yaml")
-	vp.AddConfigPath(".")
-	s.cfg = config.NewViper(vp)
-
-	// Configuration defaults
-	s.cfg.SetDefault("mode", ModeDevelopment)
-	s.cfg.SetDefault("address", DftNetAddr)
-	s.cfg.SetDefault("readTimeout", DftNetReadTimeout)
-	s.cfg.SetDefault("writeTimeout", DftNetWriteTimeout)
-
-	// Load configuration
-	if err = vp.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			panic(fmt.Errorf("Fatal error while loading config file: %s \n", err))
-		}
-	}
-
-	// Update mode from config
-	mode := s.cfg.GetString("mode")
-	if mode != ModeDevelopment && mode != ModeProduction {
-		panic(fmt.Errorf("unknown mode: %s", mode))
-	}
-	s.mode = mode
-
-	// Logging
+func newDefaultLogger(mode string) logger.Logger {
 	var (
+		err   error
 		zpCfg zap.Config
 		zp    *zap.Logger
 	)
+
 	if mode == ModeProduction {
 		zpCfg = zap.NewProductionConfig()
 	} else {
 		zpCfg = zap.NewDevelopmentConfig()
 	}
+
 	zpCfg.DisableCaller = true // disable caller logging since it doesn't work correctly
 	zp, err = zpCfg.Build()
 	if err != nil {
 		panic(fmt.Errorf("Fatal error while initializing a logger: %s\n", err))
 	}
-	s.log = logger.NewZap(zp.Sugar())
-	s.log.InfoF("logging initialized in %s mode", mode)
+	lg := logger.NewZap(zp.Sugar())
+	lg.InfoF("logging initialized in %s mode", mode)
 
-	// Router
-	s.router = mux.NewRouter()
-	s.AddMiddleware(loggingMiddleware)
-	if mode == ModeDevelopment {
-		s.AddMiddleware(serverSignatureMiddleware)
+	return lg
+}
+
+func newDefaultConfig(name string) config.Config {
+	// Configuration engine
+	vp := viper.New()
+	vp.SetConfigName("." + name + ".yaml")
+	vp.AddConfigPath(".")
+	cfg := config.NewViper(vp)
+
+	// Configuration defaults
+	cfg.SetDefault("mode", ModeDevelopment)
+	cfg.SetDefault("address", DftNetAddr)
+	cfg.SetDefault("readTimeout", DftNetReadTimeout)
+	cfg.SetDefault("writeTimeout", DftNetWriteTimeout)
+
+	// Load configuration
+	if err := vp.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			panic(fmt.Errorf("Fatal error while loading config file: %s \n", err))
+		}
 	}
-	s.log.Debug("router initialized")
+
+	return cfg
+}
+
+func newDefaultRouter(log logger.Logger) routing.Router {
+	return routing.NewGorillaMux(log)
+}
+
+// New creates a new service.
+func New(name, mode string, cfg config.Config, log logger.Logger, router routing.Router) *Service {
+	rand.Seed(time.Now().UnixNano())
+
+	if mode != ModeDevelopment && mode != ModeProduction {
+		mode = ModeDevelopment
+	}
+
+	svc := Service{
+		name:   name,
+		mode:   mode,
+		cfg:    cfg,
+		log:    log,
+		router: router,
+	}
+
+	router.AddMiddleware(svc.loggingMiddleware)
+	if mode == ModeDevelopment {
+		router.AddMiddleware(svc.serverSignatureMiddleware)
+	}
+	log.Debug("router initialized")
 
 	/// HTTP server
-	s.server = &http.Server{
-		Handler:      s.router,
-		Addr:         s.cfg.GetString("address"),
-		ReadTimeout:  time.Duration(s.cfg.GetInt("readTimeout")) * time.Second,
-		WriteTimeout: time.Duration(s.cfg.GetInt("writeTimeout")) * time.Second,
+	svc.server = &http.Server{
+		Handler:      router,
+		Addr:         cfg.GetString("address"),
+		ReadTimeout:  time.Duration(cfg.GetInt("readTimeout")) * time.Second,
+		WriteTimeout: time.Duration(cfg.GetInt("writeTimeout")) * time.Second,
 	}
-	s.log.Debug("server initialized")
+	log.Debug("server initialized")
 
-	return &s
+	return &svc
+}
+
+// NewDefault creates a new service instance using default configuration.
+func NewDefault(name string) *Service {
+	cfg := newDefaultConfig(name)
+	mode := cfg.GetString("mode")
+	log := newDefaultLogger(mode)
+	router := newDefaultRouter(log)
+
+	return New(name, mode, cfg, log, router)
 }

@@ -2,8 +2,8 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package service provides base service structures and functions.
-package service
+// Package routing provides routing related things.
+package routing
 
 import (
 	"encoding/json"
