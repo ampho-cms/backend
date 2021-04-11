@@ -2,12 +2,13 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package service provides base service structures and functions
+// Package service provides base service structures and functions.
 package service
 
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
@@ -92,7 +93,7 @@ func (s *Service) Start() {
 		}
 	}(s.log)
 
-	// Run server without blocking to ket further code process OS signals properly
+	// Run server without blocking to let further code process OS signals properly
 	go func() {
 		if err := s.server.ListenAndServe(); err != nil {
 			fmt.Printf("%v\n", err)
@@ -108,7 +109,7 @@ func (s *Service) Start() {
 	<-c
 
 	// Wait while all connections will be finished
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(defShutdownTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(DftShutdownTimeout)*time.Second)
 	defer cancel()
 	s.log.Info("shutting down")
 	_ = s.server.Shutdown(ctx)
@@ -120,9 +121,11 @@ func (s *Service) Start() {
 func NewDefault(name string) *Service {
 	var err error
 
+	rand.Seed(time.Now().UnixNano())
+
 	s := Service{
 		name: name,
-		mode: modeDevelopment,
+		mode: ModeDevelopment,
 	}
 
 	// Configuration engine
@@ -132,10 +135,10 @@ func NewDefault(name string) *Service {
 	s.cfg = config.NewViper(vp)
 
 	// Configuration defaults
-	s.cfg.SetDefault("mode", modeDevelopment)
-	s.cfg.SetDefault("address", defNetAddr)
-	s.cfg.SetDefault("readTimeout", defNetReadTimeout)
-	s.cfg.SetDefault("writeTimeout", defNetWriteTimeout)
+	s.cfg.SetDefault("mode", ModeDevelopment)
+	s.cfg.SetDefault("address", DftNetAddr)
+	s.cfg.SetDefault("readTimeout", DftNetReadTimeout)
+	s.cfg.SetDefault("writeTimeout", DftNetWriteTimeout)
 
 	// Load configuration
 	if err = vp.ReadInConfig(); err != nil {
@@ -146,7 +149,7 @@ func NewDefault(name string) *Service {
 
 	// Update mode from config
 	mode := s.cfg.GetString("mode")
-	if mode != modeDevelopment && mode != modeProduction {
+	if mode != ModeDevelopment && mode != ModeProduction {
 		panic(fmt.Errorf("unknown mode: %s", mode))
 	}
 	s.mode = mode
@@ -156,7 +159,7 @@ func NewDefault(name string) *Service {
 		zpCfg zap.Config
 		zp    *zap.Logger
 	)
-	if mode == modeProduction {
+	if mode == ModeProduction {
 		zpCfg = zap.NewProductionConfig()
 	} else {
 		zpCfg = zap.NewDevelopmentConfig()
@@ -172,11 +175,12 @@ func NewDefault(name string) *Service {
 	// Router
 	s.router = mux.NewRouter()
 	s.AddMiddleware(loggingMiddleware)
-	if mode == modeDevelopment {
+	if mode == ModeDevelopment {
 		s.AddMiddleware(serverSignatureMiddleware)
 	}
 	s.log.Debug("router initialized")
 
+	/// HTTP server
 	s.server = &http.Server{
 		Handler:      s.router,
 		Addr:         s.cfg.GetString("address"),

@@ -2,6 +2,7 @@
 // Email:   a@shepetko.com
 // License: MIT
 
+// Package service provides base service structures and functions.
 package service
 
 import (

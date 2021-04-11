@@ -2,6 +2,7 @@
 // Email:   a@shepetko.com
 // License: MIT
 
+// Package service provides base service structures and functions.
 package service
 
 // serverSignatureMiddleware adds a service signature to the Server HTTP header.

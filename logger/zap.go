@@ -7,7 +7,7 @@ package logger
 
 import "go.uber.org/zap"
 
-// Zap is the Zap logger backend
+// Zap is the Zap logger backend.
 type Zap struct {
 	backend *zap.SugaredLogger
 }
