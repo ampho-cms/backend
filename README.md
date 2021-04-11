@@ -2,6 +2,8 @@
 
 Ampho is a microservice content management system.
 
+![Unit tests](https://github.com/ampho-cms/backend/actions/workflows/unit-tests.yml/badge.svg)
+
 ## Authors
 
 [Alexander Shepetko](https://shepetko.com) -- initial work.
