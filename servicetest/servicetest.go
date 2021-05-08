@@ -2,6 +2,7 @@
 // Email:   a@shepetko.com
 // License: MIT
 
+// Package servicetest provides helper functions for testing services.
 package servicetest
 
 import (

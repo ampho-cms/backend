@@ -11,7 +11,7 @@ import (
 
 // ReadHTTPResponseBodyNoErr reads entire HTTP response body into a byte slice, silently skipping errors.
 //
-// Usually can be useful in utit tests.
+// Usually can be useful in unit tests.
 func ReadHTTPResponseBodyNoErr(resp *http.Response) []byte {
 	r, _ := io.ReadAll(resp.Body)
 
