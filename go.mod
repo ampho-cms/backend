@@ -1,4 +1,4 @@
-module ampho
+module github.com/ampho-cms/backend
 
 go 1.16
 

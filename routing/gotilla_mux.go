@@ -6,9 +6,10 @@
 package routing
 
 import (
-	"ampho/logger"
 	"github.com/gorilla/mux"
 	"net/http"
+
+	"github.com/ampho-cms/backend/logger"
 )
 
 type GorillaMuxRouter struct {
