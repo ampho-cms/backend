@@ -2,7 +2,6 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package routing provides routing related things.
 package routing
 
 import (
@@ -10,7 +9,7 @@ import (
 	"net/http"
 )
 
-// Response is an HTTP response
+// Response is the http.ResponseWriter wrapper with several helper methods.
 type Response struct {
 	writer http.ResponseWriter
 }
@@ -18,6 +17,16 @@ type Response struct {
 // Writer returns an underlying writer
 func (r *Response) Writer() http.ResponseWriter {
 	return r.writer
+}
+
+// SetStatus writes a status string to the response header.
+func (r *Response) SetStatus(code int) {
+	r.writer.WriteHeader(code)
+}
+
+// SetHeader sets header's value.
+func (r *Response) SetHeader(key, value string) {
+	r.writer.Header().Set(key, value)
 }
 
 // WriteString writes a string to a response.

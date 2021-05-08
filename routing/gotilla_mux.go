@@ -37,11 +37,12 @@ func (r *GorillaMuxRouter) AddHandler(path string, handler RequestHandler) Route
 }
 
 // AddMiddleware appends a middleware to the chain.
-func (r *GorillaMuxRouter) AddMiddleware(handler RequestHandler) {
+func (r *GorillaMuxRouter) AddMiddleware(handler MiddlewareHandler) {
 	r.backend.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-			handler(&Request{request: req}, &Response{writer: resp})
-			next.ServeHTTP(resp, req)
+			if handler(&Request{request: req}, &Response{writer: resp}) {
+				next.ServeHTTP(resp, req)
+			}
 		})
 	})
 

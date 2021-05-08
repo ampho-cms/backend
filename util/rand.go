@@ -32,17 +32,17 @@ func RandStr(alphabet []rune, length int) string {
 	return b.String()
 }
 
-// RandStrAscii generates a random string using full ASCII alphabet.
-func RandStrAscii(length int) string {
+// RandAscii generates a random string using full ASCII alphabet.
+func RandAscii(length int) string {
 	return RandStr([]rune(AsciiFull), length)
 }
 
-// RandStrAsciiAlpha generates a random string using ASCII letters.
-func RandStrAsciiAlpha(length int) string {
+// RandAsciiAlpha generates a random string using only ASCII letters.
+func RandAsciiAlpha(length int) string {
 	return RandStr([]rune(AsciiAlpha), length)
 }
 
-// RandStrAsciiAlphaNum generates a random string using ASCII letters and numbers.
-func RandStrAsciiAlphaNum(length int) string {
+// RandAsciiAlphaNum generates a random string using ASCII letters and numbers.
+func RandAsciiAlphaNum(length int) string {
 	return RandStr([]rune(AsciiAlphaNum), length)
 }

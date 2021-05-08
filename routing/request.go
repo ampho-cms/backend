@@ -2,33 +2,36 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package routing provides routing related things.
 package routing
 
 import (
 	"net/http"
 )
 
-// RequestHandler is the HTTP request handler structure.
-type RequestHandler func(*Request, *Response)
-
-// Request is the service HTTP request structure.
+// Request is the http.Request wrapper with several helper methods.
 type Request struct {
 	request *http.Request
 	router  Router
 }
+
+// RequestHandler is the HTTP request handler.
+type RequestHandler func(req *Request, resp *Response)
+
+// MiddlewareHandler is the middleware HTTP request handler.
+// Should return false if the next middleware in chain must not be called.
+type MiddlewareHandler func(req *Request, resp *Response) bool
 
 // Request returns the underlying http.Request object.
 func (r *Request) Request() *http.Request {
 	return r.request
 }
 
-// Vars returns request variables. Shortcut method.
-func (r *Request) Vars(req *http.Request, k string) map[string]string {
+// Vars returns request variables.
+func (r *Request) Vars(req *http.Request) map[string]string {
 	return r.router.Vars(req)
 }
 
-// Var returns a request variable value. Shortcut method.
-func (r *Request) Var(req *http.Request, k string) string {
-	return r.router.Vars(req)[k]
+// Var returns a request variable value.
+func (r *Request) Var(k string) string {
+	return r.router.Vars(r.Request())[k]
 }

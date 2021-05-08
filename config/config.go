@@ -2,7 +2,7 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package config contains configuration related things
+// Package config contains configuration related things.
 package config
 
 import "time"
@@ -50,9 +50,6 @@ type Config interface {
 
 	// GetStringMapStringSlice returns the value associated with the key as a map to a slice of strings.
 	GetStringMapStringSlice(key string) map[string][]string
-
-	// GetSize returns the size of the value associated with the given key in bytes.
-	GetSize(key string) uint
 
 	// IsSet checks to see if the key has been set in any of the data locations.
 	IsSet(key string) bool

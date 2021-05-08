@@ -33,12 +33,6 @@ type Logger interface {
 	// ErrorF logs a formatted message at error level.
 	ErrorF(tpl string, args ...interface{})
 
-	// DebugPanic logs a message at panic level and then panics if logger is in development mode.
-	DebugPanic(args ...interface{})
-
-	// DebugPanicF logs a formatted message at panic level and then panics if logger is in development mode.
-	DebugPanicF(tpl string, args ...interface{})
-
 	// Panic logs a message at panic level and then panics.
 	Panic(args ...interface{})
 

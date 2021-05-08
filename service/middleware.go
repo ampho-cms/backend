@@ -2,17 +2,18 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package service provides base service structures and functions.
 package service
 
 import "ampho/routing"
 
-// serverSignatureMiddleware adds a service signature to the Server HTTP header.
-func (s *Service) serverSignatureMiddleware(req *routing.Request, resp *routing.Response) {
-	resp.Writer().Header().Add("Server", s.name)
+// ServerSignatureMiddleware adds a Server HTTP header to server responses.
+func (s *Service) ServerSignatureMiddleware(req *routing.Request, resp *routing.Response) bool {
+	resp.Writer().Header().Add("Server", s.Signature())
+	return true
 }
 
-// loggingMiddleware logs an HTTP request
-func (s *Service) loggingMiddleware(req *routing.Request, resp *routing.Response) {
+// RequestLogDebugMiddleware logs requests at debug level.
+func (s *Service) RequestLogDebugMiddleware(req *routing.Request, resp *routing.Response) bool {
 	s.log.DebugF("%s %s", req.Request().Method, req.Request().RequestURI)
+	return true
 }

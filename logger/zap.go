@@ -2,7 +2,6 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package logger contains logging related things
 package logger
 
 import "go.uber.org/zap"
@@ -62,16 +61,6 @@ func (z *Zap) ErrorF(tpl string, args ...interface{}) {
 	z.backend.Errorf(tpl, args...)
 }
 
-// DebugPanic logs a message at panic level and then panics if logger is in development mode.
-func (z *Zap) DebugPanic(args ...interface{}) {
-	z.backend.DPanic(args...)
-}
-
-// DebugPanicF logs a formatted message at panic level and then panics if logger is in development mode.
-func (z *Zap) DebugPanicF(tpl string, args ...interface{}) {
-	z.backend.DPanicf(tpl, args...)
-}
-
 // Panic logs a message at panic level and then panics.
 func (z *Zap) Panic(args ...interface{}) {
 	z.backend.Panic(args...)
@@ -93,6 +82,6 @@ func (z *Zap) FatalF(tpl string, args ...interface{}) {
 }
 
 // NewZap creates a new Zap logger
-func NewZap(backend *zap.SugaredLogger) Logger {
-	return &Zap{backend}
+func NewZap(backend *zap.Logger) Logger {
+	return &Zap{backend.Sugar()}
 }

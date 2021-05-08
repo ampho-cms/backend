@@ -2,12 +2,12 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package config contains configuration related things
 package config
 
 import (
-	"github.com/spf13/viper"
 	"time"
+	
+	"github.com/spf13/viper"
 )
 
 // Viper is the Viper config backend.
@@ -83,11 +83,6 @@ func (v *Viper) GetStringMapString(key string) map[string]string {
 // GetStringMapStringSlice returns the value associated with the key as a map to a slice of strings.
 func (v *Viper) GetStringMapStringSlice(key string) map[string][]string {
 	return v.backend.GetStringMapStringSlice(key)
-}
-
-// GetSize returns the size of the value associated with the given key in bytes.
-func (v *Viper) GetSize(key string) uint {
-	return v.backend.GetSizeInBytes(key)
 }
 
 // IsSet checks to see if the key has been set in any of the data locations.

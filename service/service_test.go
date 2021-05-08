@@ -3,41 +3,43 @@
 // License: MIT
 
 // Package service_test provides tests of base service structures and functions.
-package service_test
+package service
 
 import (
 	"testing"
 
-	"ampho/service"
 	"ampho/util"
 )
 
-// TestNewDefault tests default service creation
-func TestNewDefault(t *testing.T) {
-	name := util.RandStrAscii(8)
-	app := service.NewDefault(name)
+// TestNew tests service creation
+func TestNew(t *testing.T) {
+	name := util.RandAscii(8)
+	svc := NewTesting(name)
 
-	if got := app.Name(); got != name {
+	if got := svc.Name(); got != name {
 		t.Errorf("Name() == %q, want %q", got, name)
 	}
 
-	if got := app.Mode(); got != service.ModeDevelopment {
-		t.Errorf("Mode() == %q, want %q", got, service.ModeDevelopment)
+	if got := svc.Mode(); got != ModeDevelopment {
+		t.Errorf("Mode() == %q, want %q", got, ModeDevelopment)
 	}
 
-	if got := app.Cfg(); got == nil {
+	if got := svc.Cfg(); got == nil {
 		t.Errorf("Cfg() == %v, want pointer", got)
 	}
 
-	if got := app.Log(); got == nil {
+	if got := svc.Log(); got == nil {
 		t.Errorf("Log() == %v, want pointer", got)
 	}
 
-	if got := app.Router(); got == nil {
+	if got := svc.Router(); got == nil {
 		t.Errorf("Router() == %v, want pointer", got)
 	}
 
-	if got := app.Server(); got == nil {
+	if got := svc.Server(); got == nil {
 		t.Errorf("Server() == %v, want pointer", got)
 	}
+
+	go svc.Start()
+	svc.Stop()
 }
