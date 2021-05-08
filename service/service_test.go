@@ -8,7 +8,7 @@ package service
 import (
 	"testing"
 
-	"github.com/ampho-cms/backend/util"
+	"ampho.xyz/ampho/util"
 )
 
 // TestNew tests service creation

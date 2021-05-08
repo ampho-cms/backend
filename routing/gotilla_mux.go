@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 
-	"github.com/ampho-cms/backend/logger"
+	"ampho.xyz/ampho/logger"
 )
 
 type GorillaMuxRouter struct {

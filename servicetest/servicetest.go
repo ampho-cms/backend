@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/ampho-cms/backend/service"
+	"ampho.xyz/ampho/service"
 )
 
 type Tester struct {

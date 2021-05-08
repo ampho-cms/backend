@@ -4,7 +4,7 @@
 
 package service
 
-import "github.com/ampho-cms/backend/routing"
+import "ampho.xyz/ampho/routing"
 
 // ServerSignatureMiddleware adds a Server HTTP header to server responses.
 func (s *Service) ServerSignatureMiddleware(req *routing.Request, resp *routing.Response) bool {

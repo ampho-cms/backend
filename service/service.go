@@ -16,9 +16,9 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 
-	"github.com/ampho-cms/backend/config"
-	"github.com/ampho-cms/backend/logger"
-	"github.com/ampho-cms/backend/routing"
+	"ampho.xyz/ampho/config"
+	"ampho.xyz/ampho/logger"
+	"ampho.xyz/ampho/routing"
 )
 
 // Service is the service.
