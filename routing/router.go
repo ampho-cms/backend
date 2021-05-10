@@ -10,8 +10,8 @@ type Router interface {
 	// Vars returns request variables.
 	Vars(req *http.Request) map[string]string
 
-	// AddHandler registers a new route.
-	AddHandler(path string, handler RequestHandler) Route
+	// Handle registers a new route.
+	Handle(path string, handler RequestHandler) Route
 
 	// AddMiddleware appends a middleware to the chain.
 	AddMiddleware(handler MiddlewareHandler)

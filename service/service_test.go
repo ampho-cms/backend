@@ -11,8 +11,8 @@ import (
 	"ampho.xyz/ampho/util"
 )
 
-// TestNew tests service creation
-func TestNew(t *testing.T) {
+// TestNewDefault tests default service creation.
+func TestNewDefault(t *testing.T) {
 	name := util.RandAscii(8)
 	svc := NewTesting(name)
 

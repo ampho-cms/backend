@@ -2,15 +2,14 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package service provides base service structures and functions.
 package service
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"time"
 
 	"github.com/spf13/viper"
@@ -21,15 +20,14 @@ import (
 	"ampho.xyz/ampho/routing"
 )
 
-// Service is the service.
+// Service is the base service structure.
 type Service struct {
-	name    string
-	version string
-	mode    string
-	cfg     config.Config
-	log     logger.Logger
-	router  routing.Router
-	server  *http.Server
+	name   string
+	mode   string
+	cfg    config.Config
+	log    logger.Logger
+	router routing.Router
+	server *http.Server
 }
 
 // Name returns service name.
@@ -37,7 +35,7 @@ func (s *Service) Name() string {
 	return s.name
 }
 
-// Signature returns service signature used as a 'Server' HTTP header.
+// Signature returns signature used as a 'Server' HTTP header.
 func (s *Service) Signature() string {
 	return s.name
 }
@@ -67,8 +65,7 @@ func (s *Service) Server() *http.Server {
 	return s.server
 }
 
-// Start starts the service in blocking mode.
-// This method is usually should be run in a goroutine.
+// Start starts the service. Intended to be run in a goroutine.
 func (s *Service) Start() {
 	err := s.server.ListenAndServe()
 	if err == http.ErrServerClosed {
@@ -81,7 +78,7 @@ func (s *Service) Start() {
 // Stop stops the service.
 func (s *Service) Stop() {
 	s.log.Debug("shutting down...")
-	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.GetDuration("shutdownTimeout"))
+	ctx, cancel := context.WithTimeout(context.Background(), s.cfg.GetDuration("service.shutdownTimeout"))
 	defer cancel()
 
 	// Ask server to gracefully shutdown. After it finish shutting down
@@ -89,12 +86,11 @@ func (s *Service) Stop() {
 		s.log.Error(err.Error())
 	}
 
+	// Flush logs
 	_ = s.log.Sync()
 }
 
-// Run starts the server and waits for SIGINT.
-//
-// Usually this function should be a last call in your `main()`.
+// Run starts the server and waits for SIGINT. Usually it should be a last call in the `main()`.
 func (s *Service) Run() {
 	go s.Start()
 	s.log.DebugF("%s started at http://%s in %s mode", s.name, s.server.Addr, s.mode)
@@ -107,7 +103,7 @@ func (s *Service) Run() {
 }
 
 // NewDefaultLogger and configures a new default logger.
-func NewDefaultLogger(mode string) logger.Logger {
+func NewDefaultLogger(mode string) (logger.Logger, error) {
 	var (
 		err   error
 		zpCfg zap.Config
@@ -120,97 +116,117 @@ func NewDefaultLogger(mode string) logger.Logger {
 		zpCfg = zap.NewDevelopmentConfig()
 	}
 
-	//zpCfg.DisableCaller = true // disable caller logging since it doesn't work correctly
 	zp, err = zpCfg.Build(zap.AddCallerSkip(1))
 	if err != nil {
-		panic(fmt.Errorf("Fatal error while initializing a logger: %s\n", err))
+		return nil, err
 	}
 	l := logger.NewZap(zp)
-	l.DebugF("logging initialized in %s mode", mode)
 
-	return l
+	return l, nil
 }
 
 // NewDefaultConfig creates and configures a new default configurator.
-func NewDefaultConfig(name string) config.Config {
+func NewDefaultConfig(name string) (config.Config, error) {
+	// Executable directory path
+	exeDirPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		return nil, err
+	}
+
 	// Configuration engine
 	vp := viper.New()
-	vp.SetConfigName("." + name + ".yaml")
+	vp.SetConfigName(name)
+	vp.SetConfigType("yaml")
+	vp.AddConfigPath("$HOME/." + name)
+	vp.AddConfigPath(exeDirPath)
 	vp.AddConfigPath(".")
 	cfg := config.NewViper(vp)
 
 	// Configuration defaults
-	cfg.SetDefault("mode", ModeDevelopment)
-	cfg.SetDefault("address", DftNetAddr)
-	cfg.SetDefault("readTimeout", DftNetReadTimeout)
-	cfg.SetDefault("writeTimeout", DftNetWriteTimeout)
-	cfg.SetDefault("shutdownTimeout", DftShutdownTimeout)
+	cfg.SetDefault("service.mode", ModeDevelopment)
+	cfg.SetDefault("service.shutdownTimeout", DftShutdownTimeout)
+	cfg.SetDefault("network.address", DftNetAddr)
+	cfg.SetDefault("network.readTimeout", DftNetReadTimeout)
+	cfg.SetDefault("network.writeTimeout", DftNetWriteTimeout)
 
 	// Load configuration
 	if err := vp.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			panic(fmt.Errorf("Fatal error while loading config file: %s \n", err))
+			return nil, err
 		}
 	}
 
-	return cfg
+	return cfg, nil
 }
 
-// NewDefaultRouter creates and configures a default router.
-func NewDefaultRouter(log logger.Logger) routing.Router {
-	return routing.NewGorillaMux(log)
+// NewDefaultRouter creates a new default router.
+func NewDefaultRouter() routing.Router {
+	return routing.NewGorillaMux()
 }
 
-// New creates a new service.
-func New(name, mode string, cfg config.Config, log logger.Logger, router routing.Router) *Service {
-	if mode != ModeDevelopment && mode != ModeProduction {
+// NewDefaultServer instantiates a new HTTP server using default configuration.
+func NewDefaultServer(cfg config.Config, handler http.Handler) *http.Server {
+	return &http.Server{
+		Handler:      handler,
+		Addr:         cfg.GetString("network.address"),
+		ReadTimeout:  time.Second * 15,
+		WriteTimeout: time.Second * 15,
+	}
+}
+
+// New creates a new Service instance.
+func New(name, mode string, cfg config.Config, log logger.Logger, router routing.Router, srv *http.Server) *Service {
+	// Sanitize mode
+	switch mode {
+	case ModeDevelopment, ModeProduction:
+	default:
 		mode = ModeDevelopment
 	}
 
-	svc := Service{
-		name:   name,
-		mode:   mode,
-		cfg:    cfg,
-		log:    log,
-		router: router,
-	}
-
-	svc.server = &http.Server{
-		Handler:      router,
-		Addr:         cfg.GetString("address"),
-		ReadTimeout:  time.Duration(cfg.GetInt("readTimeout")) * time.Second,
-		WriteTimeout: time.Duration(cfg.GetInt("writeTimeout")) * time.Second,
-	}
-
-	return &svc
+	return &Service{name, mode, cfg, log, router, srv}
 }
 
 // NewDefault creates a new Service instance using default configuration.
-func NewDefault(name string) *Service {
-	cfg := NewDefaultConfig(name)
-	mode := cfg.GetString("mode")
-	log := NewDefaultLogger(mode)
-	router := NewDefaultRouter(log)
-	svc := New(name, mode, cfg, log, router)
+func NewDefault(name string) (*Service, error) {
+	// Configuration
+	cfg, err := NewDefaultConfig(name)
+	if err != nil {
+		return nil, err
+	}
 
+	// Determine mode
+	mode := cfg.GetString("service.mode")
+	switch mode {
+	case ModeDevelopment, ModeProduction:
+	default:
+		mode = ModeDevelopment
+	}
+
+	// Logger
+	log, err := NewDefaultLogger(mode)
+	if err != nil {
+		return nil, err
+	}
+
+	// Service
+	router := NewDefaultRouter()
+	svc := New(name, mode, cfg, log, router, NewDefaultServer(cfg, router))
+
+	// Middlewares
 	router.AddMiddleware(svc.ServerSignatureMiddleware)
 	if mode == ModeDevelopment {
 		router.AddMiddleware(svc.RequestLogDebugMiddleware)
 	}
 
-	return svc
+	return svc, nil
 }
 
-// NewTesting creates a new service instance suitable to be a part of unit tests.
+// NewTesting creates a new Service instance suitable for using in unit tests.
 func NewTesting(name string) *Service {
 	log := logger.NewMemory(logger.LDebug)
-	svc := New(
-		name,
-		ModeDevelopment,
-		config.NewMemory(),
-		log,
-		NewDefaultRouter(log),
-	)
+	cfg := config.NewMemory()
+	router := NewDefaultRouter()
+	srv := NewDefaultServer(cfg, router)
 
-	return svc
+	return New(name, ModeDevelopment, cfg, log, router, srv)
 }

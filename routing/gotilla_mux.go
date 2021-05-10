@@ -2,21 +2,19 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package routing provides routing related things.
 package routing
 
 import (
 	"github.com/gorilla/mux"
 	"net/http"
-
-	"ampho.xyz/ampho/logger"
 )
 
+// GorillaMuxRouter is GorillaMux backend.
 type GorillaMuxRouter struct {
 	backend *mux.Router
-	log     logger.Logger
 }
 
+// GorillaMuxRoute is the wrapper of GorillaMux route.
 type GorillaMuxRoute struct {
 	backend *mux.Route
 }
@@ -26,13 +24,11 @@ func (r *GorillaMuxRouter) Vars(req *http.Request) map[string]string {
 	return mux.Vars(req)
 }
 
-// AddHandler registers a new route.
-func (r *GorillaMuxRouter) AddHandler(path string, handler RequestHandler) Route {
+// Handle registers a new route.
+func (r *GorillaMuxRouter) Handle(path string, handler RequestHandler) Route {
 	muxRoute := r.backend.HandleFunc(path, func(writer http.ResponseWriter, req *http.Request) {
 		handler(&Request{req, r}, &Response{writer})
 	})
-
-	r.log.DebugF("route registered: %s", path)
 
 	return &GorillaMuxRoute{muxRoute}
 }
@@ -46,8 +42,6 @@ func (r *GorillaMuxRouter) AddMiddleware(handler MiddlewareHandler) {
 			}
 		})
 	})
-
-	r.log.DebugF("middleware registered: %v", handler)
 }
 
 // ServeHTTP dispatches the handler registered in the matched route.
@@ -56,9 +50,6 @@ func (r *GorillaMuxRouter) ServeHTTP(writer http.ResponseWriter, request *http.R
 }
 
 // NewGorillaMux creates a new gorilla/mux backend router.
-func NewGorillaMux(log logger.Logger) Router {
-	return &GorillaMuxRouter{
-		mux.NewRouter(),
-		log,
-	}
+func NewGorillaMux() *GorillaMuxRouter {
+	return &GorillaMuxRouter{mux.NewRouter()}
 }
