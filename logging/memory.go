@@ -2,7 +2,7 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-package logger
+package logging
 
 import (
 	"fmt"

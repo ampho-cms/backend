@@ -10,14 +10,13 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"time"
 
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
-
 	"ampho.xyz/ampho/config"
-	"ampho.xyz/ampho/logger"
+	"ampho.xyz/ampho/logging"
 	"ampho.xyz/ampho/routing"
+	"github.com/spf13/viper"
 )
 
 // Service is the base service structure.
@@ -25,7 +24,7 @@ type Service struct {
 	name   string
 	mode   string
 	cfg    config.Config
-	log    logger.Logger
+	log    logging.Logger
 	router routing.Router
 	server *http.Server
 }
@@ -51,7 +50,7 @@ func (s *Service) Cfg() config.Config {
 }
 
 // Log returns the logger.
-func (s *Service) Log() logger.Logger {
+func (s *Service) Log() logging.Logger {
 	return s.log
 }
 
@@ -102,33 +101,10 @@ func (s *Service) Run() {
 	s.Stop()
 }
 
-// NewDefaultLogger and configures a new default logger.
-func NewDefaultLogger(mode string) (logger.Logger, error) {
-	var (
-		err   error
-		zpCfg zap.Config
-		zp    *zap.Logger
-	)
-
-	if mode == ModeProduction {
-		zpCfg = zap.NewProductionConfig()
-	} else {
-		zpCfg = zap.NewDevelopmentConfig()
-	}
-
-	zp, err = zpCfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		return nil, err
-	}
-	l := logger.NewZap(zp)
-
-	return l, nil
-}
-
 // NewDefaultConfig creates and configures a new default configurator.
 func NewDefaultConfig(name string) (config.Config, error) {
 	// Executable directory path
-	exeDirPath, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	execDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		return nil, err
 	}
@@ -138,13 +114,17 @@ func NewDefaultConfig(name string) (config.Config, error) {
 	vp.SetConfigName(name)
 	vp.SetConfigType("yaml")
 	vp.AddConfigPath("$HOME/." + name)
-	vp.AddConfigPath(exeDirPath)
+	vp.AddConfigPath(execDir)
 	vp.AddConfigPath(".")
 	cfg := config.NewViper(vp)
 
 	// Configuration defaults
 	cfg.SetDefault("service.mode", ModeDevelopment)
 	cfg.SetDefault("service.shutdownTimeout", DftShutdownTimeout)
+	cfg.SetDefault("logging.console.enabled", DftLoggingConsoleEnabled)
+	cfg.SetDefault("logging.file.size", DftLoggingFileSize)
+	cfg.SetDefault("logging.file.age", DftLoggingFileAge)
+	cfg.SetDefault("logging.file.backups", DftLoggingFileBackups)
 	cfg.SetDefault("network.address", DftNetAddr)
 	cfg.SetDefault("network.readTimeout", DftNetReadTimeout)
 	cfg.SetDefault("network.writeTimeout", DftNetWriteTimeout)
@@ -175,7 +155,7 @@ func NewDefaultServer(cfg config.Config, handler http.Handler) *http.Server {
 }
 
 // New creates a new Service instance.
-func New(name, mode string, cfg config.Config, log logger.Logger, router routing.Router, srv *http.Server) *Service {
+func New(name, mode string, cfg config.Config, log logging.Logger, router routing.Router, srv *http.Server) *Service {
 	// Sanitize mode
 	switch mode {
 	case ModeDevelopment, ModeProduction:
@@ -203,9 +183,25 @@ func NewDefault(name string) (*Service, error) {
 	}
 
 	// Logger
-	log, err := NewDefaultLogger(mode)
-	if err != nil {
-		return nil, err
+	var log logging.Logger
+	logPath := cfg.GetString("logging.file.path")
+	if logPath != "" {
+		logPath = strings.ReplaceAll(logPath, "$SERVICE_NAME", name)
+		log, err = logging.NewDefaultRotatingFile(
+			mode,
+			logPath,
+			cfg.GetInt("logging.file.size"),
+			cfg.GetInt("logging.file.age"),
+			cfg.GetInt("logging.file.backups"),
+			cfg.GetBool("logging.console.enabled"),
+		)
+		if err != nil {
+			return nil, err
+		}
+	} else if cfg.GetBool("logging.console.enabled") {
+		if log, err = logging.NewDefaultConsole(mode); err != nil {
+			return nil, err
+		}
 	}
 
 	// Service
@@ -223,7 +219,7 @@ func NewDefault(name string) (*Service, error) {
 
 // NewTesting creates a new Service instance suitable for using in unit tests.
 func NewTesting(name string) *Service {
-	log := logger.NewMemory(logger.LDebug)
+	log := logging.NewMemory(logging.LDebug)
 	cfg := config.NewMemory()
 	router := NewDefaultRouter()
 	srv := NewDefaultServer(cfg, router)

@@ -2,7 +2,7 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-package logger
+package logging
 
 import "go.uber.org/zap"
 
@@ -82,6 +82,6 @@ func (z *Zap) FatalF(tpl string, args ...interface{}) {
 }
 
 // NewZap creates a new Zap logger
-func NewZap(backend *zap.Logger) Logger {
+func NewZap(backend *zap.Logger) *Zap {
 	return &Zap{backend.Sugar()}
 }

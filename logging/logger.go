@@ -1,5 +1,5 @@
 // Package logger contains logging related things
-package logger
+package logging
 
 // Logger is the logger interface
 type Logger interface {

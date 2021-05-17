@@ -2,12 +2,15 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-package logger
+package logging
 
 // A Level is a logging priority. Higher levels are more important.
 type Level int8
 
 const (
+	ModeDevelopment = "development" // development mode
+	ModeProduction  = "production"  // production mode
+
 	// LDebug logs are typically voluminous, and are usually disabled in production.
 	LDebug Level = iota - 1
 
