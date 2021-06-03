@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cast"
 )
 
-// Memory is the in memory config backend.
+// Memory is the in-memory config backend.
 type Memory struct {
 	defaults map[string]interface{}
 	storage  map[string]interface{}
@@ -132,5 +132,8 @@ func (m *Memory) Set(key string, value interface{}) {
 
 // NewMemory creates a new Memory configurator backend.
 func NewMemory() *Memory {
-	return &Memory{}
+	return &Memory{
+		defaults: make(map[string]interface{}),
+		storage:  make(map[string]interface{}),
+	}
 }

@@ -2,7 +2,6 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package util contains various useful utilities
 package util
 
 import (

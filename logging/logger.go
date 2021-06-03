@@ -1,4 +1,7 @@
-// Package logger contains logging related things
+// Author:  Alexander Shepetko
+// Email:   a@shepetko.com
+// License: MIT
+
 package logging
 
 // Logger is the logger interface

@@ -12,26 +12,11 @@ import (
 	"ampho.xyz/ampho/service"
 )
 
-type Tester struct {
-	svc *service.Service
-}
-
-
-func (w *Tester) DoRequest(method, target string) *http.Response {
+// DoRequest performs a request to the service and writes a response.
+func DoRequest(svc service.Service, method, target string) *http.Response {
 	req := httptest.NewRequest(method, target, nil)
 	respW := httptest.NewRecorder()
-	w.svc.Server().Handler.ServeHTTP(respW, req)
+	svc.Server().Handler.ServeHTTP(respW, req)
 
 	return respW.Result()
-}
-
-func (w *Tester) Stop() {
-	w.svc.Stop()
-}
-
-func NewTester(name string, setup func(*service.Service) *service.Service) *Tester {
-	svc := setup(service.NewTesting(name))
-	go svc.Start()
-
-	return &Tester{svc}
 }

@@ -5,6 +5,7 @@
 package logging
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 
@@ -32,6 +33,8 @@ func NewDefaultConsole(mode string) (Logger, error) {
 		encCfg = zap.NewDevelopmentEncoderConfig()
 		zapLevel = zapcore.DebugLevel
 	}
+
+	log.SetOutput(w)
 
 	return NewZap(zap.New(zapcore.NewCore(zapcore.NewConsoleEncoder(encCfg), w, zapLevel))), nil
 }
@@ -79,6 +82,7 @@ func NewDefaultRotatingFile(mode string, path string, size, age, backups int, st
 	}
 
 	w = zapcore.NewMultiWriteSyncer(writers...)
+	log.SetOutput(w)
 
 	return NewZap(zap.New(zapcore.NewCore(zapcore.NewConsoleEncoder(encCfg), w, zapLevel))), nil
 }

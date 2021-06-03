@@ -2,7 +2,6 @@
 // Email:   a@shepetko.com
 // License: MIT
 
-// Package config contains configuration related things.
 package config
 
 import "time"
