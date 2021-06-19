@@ -15,7 +15,10 @@ import (
 
 func TestDoRequest(t *testing.T) {
 	// Create a service instance
-	svc := service.NewTesting("hello")
+	svc, err := service.NewTesting("hello")
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 
 	// Map a handler to a path
 	svc.Router().Handle("/hello/{name}", func(req *routing.Request, resp *routing.Response) {
