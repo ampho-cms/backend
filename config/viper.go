@@ -105,6 +105,16 @@ func (v *Viper) Set(key string, value interface{}) {
 	v.backend.Set(key, value)
 }
 
+// All returns all values.
+func (v *Viper) All() map[string]interface{} {
+	return v.backend.AllSettings()
+}
+
+// AllKeys returns all keys.
+func (v *Viper) AllKeys() []string {
+	return v.backend.AllKeys()
+}
+
 // NewViper creates a new Viper backend.
 func NewViper(backend *viper.Viper) Config {
 	return &Viper{backend}

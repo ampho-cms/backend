@@ -14,22 +14,13 @@ import (
 // TestNewDefault tests default service creation.
 func TestNewDefault(t *testing.T) {
 	name := util.RandAscii(8)
-	svc := NewTesting(name)
+	svc, err := NewTesting(name)
+	if err != nil {
+		t.Errorf("%v", err)
+	}
 
 	if got := svc.Name(); got != name {
 		t.Errorf("Name() == %q, want %q", got, name)
-	}
-
-	if got := svc.Mode(); got != ModeDevelopment {
-		t.Errorf("Mode() == %q, want %q", got, ModeDevelopment)
-	}
-
-	if got := svc.Cfg(); got == nil {
-		t.Errorf("Cfg() == %v, want pointer", got)
-	}
-
-	if got := svc.Log(); got == nil {
-		t.Errorf("Log() == %v, want pointer", got)
 	}
 
 	if got := svc.Router(); got == nil {

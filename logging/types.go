@@ -12,6 +12,9 @@ type Logger interface {
 	// Sync flushes any buffered log entries. Applications should take care to call Sync before exiting.
 	Sync() error
 
+	// Level returns logger level
+	Level() Level
+
 	// Debug logs a message at debug level.
 	Debug(args ...interface{})
 

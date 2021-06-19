@@ -7,17 +7,18 @@ package service
 import "time"
 
 const (
-	ModeDevelopment = "development" // development mode
-	ModeProduction  = "production"  // production mode
+	DftShutdownTimeout = time.Second * 15 // service shutdown timeout
 
-	DftShutdownTimeout = time.Second * 15 // default service shutdown timeout
+	DftLoggingLevel = "debug" // logging level
 
-	DftLoggingConsoleEnabled = true // default console logging state
-	DftLoggingFileSize       = 100  // default logging file size
-	DftLoggingFileAge        = 30   // default logging file age
-	DftLoggingFileBackups    = 12   // default logging backup files number
+	DftLoggingFileSize    = 100  // logging file size
+	DftLoggingFileAge     = 30   // logging file age
+	DftLoggingFileBackups = 12   // logging backup files number
+	DftLoggingFileStdout  = true // whether to duplicate file logging to stdout
 
-	DftNetAddr         = "127.0.0.1:8765" // default HTTP server address
-	DftNetReadTimeout  = time.Second * 15 // default network read timeout
-	DftNetWriteTimeout = time.Second * 15 // default network write timeout
+	DftAddress      = "127.0.0.1:8765" // HTTP server address
+	DftReadTimeout  = time.Second * 15 // network read timeout
+	DftWriteTimeout = time.Second * 15 // network write timeout
+
+	DftSecuritySigningMethod = "HS256" // security singing method
 )

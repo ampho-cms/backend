@@ -4,7 +4,10 @@
 
 package service
 
-import "ampho.xyz/ampho/routing"
+import (
+	"ampho.xyz/ampho/logging"
+	"ampho.xyz/ampho/routing"
+)
 
 // ServerSignatureMiddleware adds a Server HTTP header to server responses.
 func (s *Base) ServerSignatureMiddleware(req *routing.Request, resp *routing.Response) bool {
@@ -14,6 +17,6 @@ func (s *Base) ServerSignatureMiddleware(req *routing.Request, resp *routing.Res
 
 // RequestLogDebugMiddleware logs requests at debug level.
 func (s *Base) RequestLogDebugMiddleware(req *routing.Request, resp *routing.Response) bool {
-	s.log.DebugF("%s %s", req.Request().Method, req.Request().RequestURI)
+	logging.DebugF("%s %s", req.Request().Method, req.Request().RequestURI)
 	return true
 }

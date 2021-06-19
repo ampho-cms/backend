@@ -61,4 +61,10 @@ type Config interface {
 
 	// Set sets the value for the key in the override register.
 	Set(key string, value interface{})
+
+	// All returns all values.
+	All() map[string]interface{}
+
+	// AllKeys returns all keys.
+	AllKeys() []string
 }

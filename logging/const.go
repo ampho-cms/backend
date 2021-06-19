@@ -8,9 +8,6 @@ package logging
 type Level int8
 
 const (
-	ModeDevelopment = "development" // development mode
-	ModeProduction  = "production"  // production mode
-
 	// LDebug logs are typically voluminous, and are usually disabled in production.
 	LDebug Level = iota - 1
 
