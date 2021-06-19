@@ -28,7 +28,10 @@ func Example_newDefault() {
 // This example shows how to instantiate and use a service using testing configuration.
 func Example_newTesting() {
 	// Create a service instance
-	svc := service.NewTesting("hello")
+	svc, err := service.NewTesting("hello")
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
 
 	// Service setup code here
 	// ...
