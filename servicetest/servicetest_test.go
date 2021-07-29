@@ -14,7 +14,6 @@ import (
 	"ampho.xyz/httputil"
 	"ampho.xyz/service"
 	"ampho.xyz/servicetest"
-	"ampho.xyz/util"
 )
 
 func TestDoRequest(t *testing.T) {
@@ -41,7 +40,7 @@ func TestDoRequest(t *testing.T) {
 		t.Errorf("bad status: %d", resp.Result().StatusCode)
 	}
 
-	body := string(util.ReadHTTPResponseBodyNoErr(resp.Result()))
+	body := string(httputil.ReadHTTPResponseBodyNoErr(resp.Result()))
 	if body != "{\"name\":\"world\"}" {
 		t.Errorf("bad response body: %s", body)
 	}
