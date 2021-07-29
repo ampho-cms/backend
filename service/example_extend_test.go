@@ -5,9 +5,10 @@
 package service_test
 
 import (
+	"ampho.xyz/config"
 	"log"
 
-	"ampho.xyz/ampho/service"
+	"ampho.xyz/service"
 )
 
 type AwesomeService struct {
@@ -16,8 +17,16 @@ type AwesomeService struct {
 
 // This example shows how to extend a base service.
 func Example_extend() {
+	const svName = "hello"
+
+	// Config
+	cfg, err := config.New(svName, "yaml", config.DefaultSearchPaths(svName)...)
+	if err != nil {
+		log.Fatalf("failed to init config: %v", err)
+	}
+
 	// Create a base service instance
-	base, err := service.NewDefault("hello")
+	base, err := service.New(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -8,14 +8,14 @@ import "time"
 
 // Config is the configuration interface.
 type Config interface {
+	// Name returns config name
+	Name() string
+
 	// Backend returns backend configuration engine
 	Backend() interface{}
 
 	// Get can retrieve any value given the key to use.
 	Get(key string) interface{}
-
-	// Sub returns new Config instance representing a sub tree of this instance.
-	Sub(key string) Config
 
 	// GetString returns the value associated with the key as a string.
 	GetString(key string) string

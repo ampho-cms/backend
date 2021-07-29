@@ -8,9 +8,12 @@ import (
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+
+	"ampho.xyz/config"
 )
 
 var (
@@ -134,4 +137,52 @@ func GetPublicKey(signingMethod string) (interface{}, error) {
 	}
 
 	return nil, errors.New("unknown signing method: " + signingMethod)
+}
+
+// InitFromConfig initializes security from config.
+func InitFromConfig(cfg config.Config) error {
+	var err error
+
+	cfg.SetDefault("security.signingMethod", "HS256")
+
+	// Signing method
+	if err = SetSigningMethod(cfg.GetString("security.signingMethod")); err != nil {
+		return fmt.Errorf("failed to set signing method: %v", err)
+	}
+
+	// HMAC key
+	hmacKey := cfg.GetString("security.hmac.key")
+	if hmacKey != "" {
+		SetHMACKey([]byte(hmacKey))
+	}
+
+	// RSA keys
+	rsaPrvKey := cfg.GetString("security.rsa.privateKey")
+	if rsaPrvKey != "" {
+		if err = SetRSAPrivateKey([]byte(rsaPrvKey)); err != nil {
+			return fmt.Errorf("failed to load private RSA key: %v", err)
+		}
+	}
+	rsaPubKey := cfg.GetString("security.rsa.publicKey")
+	if rsaPubKey != "" {
+		if err = SetRSAPublicKey([]byte(rsaPubKey)); err != nil {
+			return fmt.Errorf("failed to load public RSA key: %v", err)
+		}
+	}
+
+	// ECDSA keys
+	ecdsaPrvKey := cfg.GetString("security.ecdsa.privateKey")
+	if ecdsaPrvKey != "" {
+		if err = SetECDSAPrivateKey([]byte(ecdsaPrvKey)); err != nil {
+			return fmt.Errorf("failed to load private ECDSA key: %v", err)
+		}
+	}
+	ecdsaPubKey := cfg.GetString("security.ecdsa.publicKey")
+	if ecdsaPubKey != "" {
+		if err = SetECDSAPublicKey([]byte(ecdsaPubKey)); err != nil {
+			return fmt.Errorf("failed to load public ECDSA key: %v", err)
+		}
+	}
+
+	return nil
 }

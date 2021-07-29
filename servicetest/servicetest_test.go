@@ -5,34 +5,43 @@
 package servicetest_test
 
 import (
+	"net/http"
 	"testing"
 
-	"ampho.xyz/ampho/routing"
-	"ampho.xyz/ampho/service"
-	"ampho.xyz/ampho/servicetest"
-	"ampho.xyz/ampho/util"
+	"github.com/gorilla/mux"
+
+	"ampho.xyz/config"
+	"ampho.xyz/httputil"
+	"ampho.xyz/service"
+	"ampho.xyz/servicetest"
+	"ampho.xyz/util"
 )
 
 func TestDoRequest(t *testing.T) {
 	// Create a service instance
-	svc, err := service.NewTesting("hello")
+	svc, err := service.New(config.NewTesting("hello"))
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
 
 	// Map a handler to a path
-	svc.Router().Handle("/hello/{name}", func(req *routing.Request, resp *routing.Response) {
-		_, _ = resp.WriteJSON(map[string]interface{}{
-			"name": req.Var("name"),
+	svc.Router().HandleFunc("/hello/{name}", func(writer http.ResponseWriter, req *http.Request) {
+		_, _ = httputil.WriteJSON(writer, map[string]interface{}{
+			"name": mux.Vars(req)["name"],
 		})
 	})
 
-	resp := servicetest.DoRequest(svc, "GET", "/hello/world")
-	if resp.StatusCode != 200 {
-		t.Errorf("bad status")
+	req, err := http.NewRequest("GET", "/hello/world", nil)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	body := string(util.ReadHTTPResponseBodyNoErr(resp))
+	resp := servicetest.DoRequest(svc, req)
+	if resp.Result().StatusCode != 200 {
+		t.Errorf("bad status: %d", resp.Result().StatusCode)
+	}
+
+	body := string(util.ReadHTTPResponseBodyNoErr(resp.Result()))
 	if body != "{\"name\":\"world\"}" {
 		t.Errorf("bad response body: %s", body)
 	}

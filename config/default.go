@@ -5,28 +5,40 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/spf13/viper"
 )
 
-// NewDefault creates a default config.
-func NewDefault(name, typ string, searchPaths []string, defaults map[string]interface{}) (Config, error) {
+// DefaultSearchPaths return default search paths.
+func DefaultSearchPaths(name string) []string {
+	r := []string{"$HOME/." + name}
 
+	if execDir, err := filepath.Abs(filepath.Dir(os.Args[0])); err == nil {
+		r = append(r, execDir)
+	}
+
+	r = append(r, ".")
+
+	return r
+}
+
+// New creates a new "default" config instance.
+func New(name, typ string, searchPath ...string) (Config, error) {
 	vp := viper.New()
-	vp.SetConfigName(name)
+	vpName := name
 
 	if typ != "" {
 		vp.SetConfigType(typ)
+		vpName += "." + typ
 	}
 
-	if len(searchPaths) > 0 {
-		for _, p := range searchPaths {
+	vp.SetConfigName(vpName)
+
+	if len(searchPath) > 0 {
+		for _, p := range searchPath {
 			vp.AddConfigPath(p)
-		}
-	}
-
-	if defaults != nil {
-		for k, v := range defaults {
-			vp.SetDefault(k, v)
 		}
 	}
 
@@ -36,6 +48,10 @@ func NewDefault(name, typ string, searchPaths []string, defaults map[string]inte
 		}
 	}
 
+	return NewViper(name, vp), nil
+}
 
-	return NewViper(vp), nil
+// NewTesting creates a new "default" config instance suitable for usage in unit tests.
+func NewTesting(name string) Config {
+	return NewViper(name, viper.New())
 }

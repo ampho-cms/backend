@@ -12,7 +12,12 @@ import (
 
 // Viper is the Viper config backend.
 type Viper struct {
+	name string
 	backend *viper.Viper
+}
+
+func (v *Viper) Name() string {
+	return v.name
 }
 
 // Backend returns backend configuration engine.
@@ -23,11 +28,6 @@ func (v *Viper) Backend() interface{} {
 // Get can retrieve any value given the key to use.
 func (v *Viper) Get(key string) interface{} {
 	return v.backend.Get(key)
-}
-
-// Sub returns new Config instance representing a sub tree of this instance.
-func (v *Viper) Sub(key string) Config {
-	return &Viper{v.backend.Sub(key)}
 }
 
 // GetString returns the value associated with the key as a string.
@@ -116,6 +116,6 @@ func (v *Viper) AllKeys() []string {
 }
 
 // NewViper creates a new Viper backend.
-func NewViper(backend *viper.Viper) Config {
-	return &Viper{backend}
+func NewViper(name string, backend *viper.Viper) Config {
+	return &Viper{name, backend}
 }

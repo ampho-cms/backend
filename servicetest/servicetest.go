@@ -6,17 +6,14 @@
 package servicetest
 
 import (
+	"ampho.xyz/service"
 	"net/http"
 	"net/http/httptest"
-
-	"ampho.xyz/ampho/service"
 )
 
 // DoRequest performs a request to the service and writes a response.
-func DoRequest(svc service.Service, method, target string) *http.Response {
-	req := httptest.NewRequest(method, target, nil)
-	respW := httptest.NewRecorder()
-	svc.Server().Handler.ServeHTTP(respW, req)
-
-	return respW.Result()
+func DoRequest(svc service.Service, req *http.Request) *httptest.ResponseRecorder {
+	rr := httptest.NewRecorder()
+	svc.Router().ServeHTTP(rr, req)
+	return rr
 }
