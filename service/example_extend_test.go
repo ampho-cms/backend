@@ -5,10 +5,10 @@
 package service_test
 
 import (
-	"ampho.xyz/config"
 	"log"
 
-	"ampho.xyz/service"
+	"ampho.xyz/core/config"
+	"ampho.xyz/core/service"
 )
 
 type AwesomeService struct {

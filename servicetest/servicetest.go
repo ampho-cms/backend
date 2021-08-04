@@ -6,9 +6,10 @@
 package servicetest
 
 import (
-	"ampho.xyz/service"
 	"net/http"
 	"net/http/httptest"
+
+	"ampho.xyz/core/service"
 )
 
 // DoRequest performs a request to the service and writes a response.

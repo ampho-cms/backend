@@ -5,11 +5,10 @@
 package service_test
 
 import (
-
 	"log"
 
-	"ampho.xyz/config"
-	"ampho.xyz/service"
+	"ampho.xyz/core/config"
+	"ampho.xyz/core/service"
 )
 
 // This example shows how to instantiate and run a service using default configuration.

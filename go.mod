@@ -1,4 +1,4 @@
-module ampho.xyz
+module ampho.xyz/core
 
 go 1.16
 
@@ -14,11 +14,3 @@ require (
 	github.com/spf13/viper v1.7.1
 	golang.org/x/mod v0.4.2 // indirect
 )
-
-retract v0.0.1
-
-retract v0.0.2
-
-retract v0.0.3
-
-retract v0.0.4

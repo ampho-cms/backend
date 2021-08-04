@@ -13,7 +13,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 
-	"ampho.xyz/config"
+	"ampho.xyz/core/config"
 )
 
 var (

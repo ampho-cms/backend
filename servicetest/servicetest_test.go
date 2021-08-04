@@ -10,10 +10,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"ampho.xyz/config"
-	"ampho.xyz/httputil"
-	"ampho.xyz/service"
-	"ampho.xyz/servicetest"
+	"ampho.xyz/core/config"
+	"ampho.xyz/core/httputil"
+	"ampho.xyz/core/service"
+	"ampho.xyz/core/servicetest"
 )
 
 func TestDoRequest(t *testing.T) {

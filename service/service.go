@@ -13,7 +13,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"ampho.xyz/config"
+	"ampho.xyz/core/config"
 )
 
 // Service is the service interface.
