@@ -20,7 +20,7 @@ func Example_extend() {
 	const svName = "hello"
 
 	// Config
-	cfg, err := config.New(svName, "yaml", config.DefaultSearchPaths(svName)...)
+	cfg, err := config.New(svName, "yaml", config.DefaultSearchPaths()...)
 	if err != nil {
 		log.Fatalf("failed to init config: %v", err)
 	}
