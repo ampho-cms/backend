@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Viper is the Viper config backend.
+// Viper is the Viper configuration backend.
 type Viper struct {
 	name string
 	backend *viper.Viper
@@ -113,9 +113,4 @@ func (v *Viper) All() map[string]interface{} {
 // AllKeys returns all keys.
 func (v *Viper) AllKeys() []string {
 	return v.backend.AllKeys()
-}
-
-// NewViper creates a new Viper backend.
-func NewViper(name string, backend *viper.Viper) Config {
-	return &Viper{name, backend}
 }

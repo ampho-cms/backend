@@ -12,5 +12,6 @@ require (
 	github.com/jackc/pgx/v4 v4.12.0
 	github.com/spf13/afero v1.2.1 // indirect
 	github.com/spf13/viper v1.7.1
+	github.com/stretchr/testify v1.7.0
 	golang.org/x/mod v0.4.2 // indirect
 )

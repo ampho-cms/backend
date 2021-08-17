@@ -8,4 +8,3 @@ Thank you to the following **GIANTS**:
 
 * [Viper -- Go configuration with fangs](https://github.com/spf13/viper)
 * [gorilla/mux -- a request router and dispatcher](https://github.com/gorilla/mux)
-* [POP -- a tasty treat for all your database needs](https://github.com/gobuffalo/pop)

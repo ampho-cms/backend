@@ -20,7 +20,7 @@ type Config interface {
 	// GetString returns the value associated with the key as a string.
 	GetString(key string) string
 
-	// GetBool returns the value associated with the key as a boolean.
+	// GetBool returns the value associated with the key as a bool.
 	GetBool(key string) bool
 
 	// GetInt returns the value associated with the key as an integer.
