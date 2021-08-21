@@ -5,8 +5,6 @@
 // Package config_test provides tests of config package.
 //
 // TODO: add tests for the following methods:
-// 		- GetTime
-//		- GetDuration
 //		- GetIntSlice
 //		- GetStringSlice
 //		- GetStringMap
@@ -219,6 +217,36 @@ func testGetDuration(t *testing.T, cfg config.Config) {
 	}
 }
 
+func testGetIntSlice(t *testing.T, cfg config.Config) {
+	tests := []struct {
+		input  interface{}
+		expect []int
+		isErr  bool
+	}{
+		{[]int{1, 3}, []int{1, 3}, false},
+		{[]interface{}{1.2, 3.2}, []int{1, 3}, false},
+		{[]string{"2", "3"}, []int{2, 3}, false},
+		{[2]string{"2", "3"}, []int{2, 3}, false},
+
+		// errors
+		{nil, nil, true},
+		{testing.T{}, nil, true},
+		{[]string{"foo", "bar"}, nil, true},
+	}
+
+	for _, v := range tests {
+		k := util.RandAsciiAlphaNum(8)
+		cfg.Set(k, v.input)
+		msg := fmt.Sprintf("input was: %#v", v.input)
+
+		if v.isErr {
+			require.Equal(t, []int{}, cfg.GetIntSlice(k), msg)
+		} else {
+			require.Equal(t, v.expect, cfg.GetIntSlice(k), msg)
+		}
+	}
+}
+
 func TestConfig(t *testing.T) {
 	rand.Seed(time.Now().Unix())
 	cfg := config.NewTesting(util.RandAsciiAlphaNum(8))
@@ -232,6 +260,7 @@ func TestConfig(t *testing.T) {
 		"GetFloat":    testGetFloat,
 		"GetTime":     testGetTime,
 		"GetDuration": testGetDuration,
+		"GetIntSlice": testGetIntSlice,
 	}
 
 	for name, fn := range tests {
