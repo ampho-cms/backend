@@ -5,7 +5,6 @@
 // Package config_test provides tests of config package.
 //
 // TODO: add tests for the following methods:
-//		- GetIntSlice
 //		- GetStringSlice
 //		- GetStringMap
 //		- GetStringMapString
@@ -20,6 +19,7 @@
 package config_test
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -234,15 +234,52 @@ func testGetIntSlice(t *testing.T, cfg config.Config) {
 		{[]string{"foo", "bar"}, nil, true},
 	}
 
+	var nilSlice []int
 	for _, v := range tests {
 		k := util.RandAsciiAlphaNum(8)
 		cfg.Set(k, v.input)
 		msg := fmt.Sprintf("input was: %#v", v.input)
 
 		if v.isErr {
-			require.Equal(t, []int{}, cfg.GetIntSlice(k), msg)
+			require.Equal(t, nilSlice, cfg.GetIntSlice(k), msg)
 		} else {
 			require.Equal(t, v.expect, cfg.GetIntSlice(k), msg)
+		}
+	}
+}
+
+func testGetStringSlice(t *testing.T, cfg config.Config) {
+	tests := []struct {
+		input  interface{}
+		expect []string
+		isErr  bool
+	}{
+		{[]int{1, 2}, []string{"1", "2"}, false},
+		{[]int8{int8(1), int8(2)}, []string{"1", "2"}, false},
+		{[]int32{int32(1), int32(2)}, []string{"1", "2"}, false},
+		{[]int64{int64(1), int64(2)}, []string{"1", "2"}, false},
+		{[]float32{float32(1.01), float32(2.01)}, []string{"1.01", "2.01"}, false},
+		{[]float64{float64(1.01), float64(2.01)}, []string{"1.01", "2.01"}, false},
+		{[]string{"a", "b"}, []string{"a", "b"}, false},
+		{[]interface{}{1, 3}, []string{"1", "3"}, false},
+		{interface{}(1), []string{"1"}, false},
+		{[]error{errors.New("a"), errors.New("b")}, []string{"a", "b"}, false},
+
+		// errors
+		{nil, nil, true},
+		{testing.T{}, nil, true},
+	}
+
+	var nilSlice []string
+	for _, v := range tests {
+		k := util.RandAsciiAlphaNum(8)
+		cfg.Set(k, v.input)
+		msg := fmt.Sprintf("input was: %#v", v.input)
+
+		if v.isErr {
+			require.Equal(t, nilSlice, cfg.GetStringSlice(k), msg)
+		} else {
+			require.Equal(t, v.expect, cfg.GetStringSlice(k), msg)
 		}
 	}
 }
@@ -261,6 +298,7 @@ func TestConfig(t *testing.T) {
 		"GetTime":     testGetTime,
 		"GetDuration": testGetDuration,
 		"GetIntSlice": testGetIntSlice,
+		"GetStringSlice": testGetStringSlice,
 	}
 
 	for name, fn := range tests {

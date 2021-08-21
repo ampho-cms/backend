@@ -12,7 +12,7 @@ import (
 
 // Viper is the Viper configuration backend.
 type Viper struct {
-	name string
+	name    string
 	backend *viper.Viper
 }
 
@@ -62,7 +62,14 @@ func (v *Viper) GetDuration(key string) time.Duration {
 
 // GetIntSlice returns the value associated with the key as a slice of int values.
 func (v *Viper) GetIntSlice(key string) []int {
-	return v.backend.GetIntSlice(key)
+	r := v.backend.GetIntSlice(key)
+
+	// Fix bug https://github.com/spf13/cast/issues/123
+	if len(r) == 0 && cap(r) == 0 && r != nil {
+		r = nil
+	}
+
+	return r
 }
 
 // GetStringSlice returns the value associated with the key as a slice of strings.
