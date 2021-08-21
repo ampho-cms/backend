@@ -171,18 +171,67 @@ func testGetTime(t *testing.T, cfg config.Config) {
 	}
 }
 
+func testGetDuration(t *testing.T, cfg config.Config) {
+	var td time.Duration = 5
+
+	tests := []struct {
+		input  interface{}
+		expect time.Duration
+		isErr  bool
+	}{
+		{time.Duration(5), td, false},
+		{5, td, false},
+		{int64(5), td, false},
+		{int32(5), td, false},
+		{int16(5), td, false},
+		{int8(5), td, false},
+		{uint(5), td, false},
+		{uint64(5), td, false},
+		{uint32(5), td, false},
+		{uint16(5), td, false},
+		{uint8(5), td, false},
+		{float64(5), td, false},
+		{float32(5), td, false},
+		{"5", td, false},
+		{"5ns", td, false},
+		{"5us", time.Microsecond * td, false},
+		{"5µs", time.Microsecond * td, false},
+		{"5ms", time.Millisecond * td, false},
+		{"5s", time.Second * td, false},
+		{"5m", time.Minute * td, false},
+		{"5h", time.Hour * td, false},
+
+		// errors
+		{"test", 0, true},
+		{testing.T{}, 0, true},
+	}
+
+	for _, v := range tests {
+		k := util.RandAsciiAlphaNum(8)
+		cfg.Set(k, v.input)
+		msg := fmt.Sprintf("input was: %#v", v.input)
+
+		if v.isErr {
+			require.Equal(t, time.Duration(0), cfg.GetDuration(k), msg)
+		} else {
+			require.Equal(t, v.expect, cfg.GetDuration(k), msg)
+		}
+	}
+}
+
 func TestConfig(t *testing.T) {
 	rand.Seed(time.Now().Unix())
 	cfg := config.NewTesting(util.RandAsciiAlphaNum(8))
 
 	tests := map[string]func(*testing.T, config.Config){
-		"Name":      testName,
-		"Get":       testGet,
-		"GetString": testGetString,
-		"GetBool":   testGetBool,
-		"GetInt":    testGetInt,
-		"GetFloat":  testGetFloat,
-		"GetTime":   testGetTime,
+		"Name":        testName,
+		"Get":         testGet,
+		"GetString":   testGetString,
+		"GetBool":     testGetBool,
+		"GetInt":      testGetInt,
+		"GetFloat":    testGetFloat,
+		"GetTime":     testGetTime,
+		"GetDuration": testGetDuration,
 	}
 
 	for name, fn := range tests {
