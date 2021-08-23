@@ -5,11 +5,6 @@
 // Package config_test provides tests of config package.
 //
 // TODO: add tests for the following methods:
-//		- GetStringSlice
-//		- GetStringMap
-//		- GetStringMapString
-//		- GetStringMapStringSlice
-//		- GetStringMapStringSlice
 // 		- IsSet
 // 		- InConfig
 // 		- SetDefault
@@ -23,6 +18,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -60,6 +56,31 @@ func randValues() []interface{} {
 		fmt.Sprintf("%f", rand.Float64()*float64(rand.Intn(1000))),
 		fmt.Sprintf("%f", -rand.Float64()*float64(rand.Intn(1000))),
 	}
+}
+
+func randStringMap() map[string]interface{} {
+	r := make(map[string]interface{})
+
+	for _, v := range randValues() {
+		r[strings.ToLower(util.RandAscii(8))] = v
+	}
+
+	return r
+}
+
+func randStringMapSlice() map[string][]interface{} {
+	r := make(map[string][]interface{})
+
+	for i := 0; i < 5+rand.Intn(10); i++ {
+		k := strings.ToLower(util.RandAscii(8))
+		s := make([]interface{}, 0)
+		for _, v := range randValues() {
+			s = append(s, v)
+		}
+		r[k] = s
+	}
+
+	return r
 }
 
 func testName(t *testing.T, cfg config.Config) {
@@ -284,21 +305,61 @@ func testGetStringSlice(t *testing.T, cfg config.Config) {
 	}
 }
 
+func testGetStringMap(t *testing.T, cfg config.Config) {
+	k := util.RandAsciiAlphaNum(8)
+	expected := randStringMap()
+	cfg.Set(k, expected)
+	require.Equal(t, expected, cfg.GetStringMap(k))
+}
+
+func testGetStringMapString(t *testing.T, cfg config.Config) {
+	values := randStringMap()
+
+	expected := make(map[string]string)
+	for k, v := range values {
+		expected[k] = cast.ToString(v)
+	}
+
+	k := util.RandAsciiAlphaNum(8)
+	cfg.Set(k, values)
+	require.Equal(t, expected, cfg.GetStringMapString(k))
+}
+
+func testGetStringMapStringSlice(t *testing.T, cfg config.Config) {
+	values := randStringMapSlice()
+
+	expected := make(map[string][]string)
+	for k, vm := range values {
+		s := make([]string, 0)
+		for _, vs := range vm {
+			s = append(s, cast.ToString(vs))
+		}
+		expected[k] = s
+	}
+
+	k := util.RandAsciiAlphaNum(8)
+	cfg.Set(k, values)
+	require.Equal(t, expected, cfg.GetStringMapStringSlice(k))
+}
+
 func TestConfig(t *testing.T) {
 	rand.Seed(time.Now().Unix())
 	cfg := config.NewTesting(util.RandAsciiAlphaNum(8))
 
 	tests := map[string]func(*testing.T, config.Config){
-		"Name":        testName,
-		"Get":         testGet,
-		"GetString":   testGetString,
-		"GetBool":     testGetBool,
-		"GetInt":      testGetInt,
-		"GetFloat":    testGetFloat,
-		"GetTime":     testGetTime,
-		"GetDuration": testGetDuration,
-		"GetIntSlice": testGetIntSlice,
-		"GetStringSlice": testGetStringSlice,
+		"Name":                    testName,
+		"Get":                     testGet,
+		"GetString":               testGetString,
+		"GetBool":                 testGetBool,
+		"GetInt":                  testGetInt,
+		"GetFloat":                testGetFloat,
+		"GetTime":                 testGetTime,
+		"GetDuration":             testGetDuration,
+		"GetIntSlice":             testGetIntSlice,
+		"GetStringSlice":          testGetStringSlice,
+		"GetStringMap":            testGetStringMap,
+		"GetStringMapString":      testGetStringMapString,
+		"GetStringMapStringSlice": testGetStringMapStringSlice,
 	}
 
 	for name, fn := range tests {
